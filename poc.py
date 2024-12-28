@@ -1,7 +1,7 @@
 import xmltodict
 import datetime
 import collections
-import copy
+# import copy
 
 
 from icecream import ic
@@ -109,14 +109,22 @@ def squash_alerts(alerts: dict) -> dict:
 
 
 def enrich_alert(report_metadata: dict, alerts: dict):
-    result = copy.deepcopy(alerts)
+    result = {
+        location: list()
+        for location in report_metadata["locations"].values()
+    }
 
-    for location, phenonemas in result.items():
+    for location, phenonemas in alerts.items():
+        result[report_metadata["locations"][location]] = []
+
         for phenonema, alert in phenonemas.items():
-            result[location][phenonema].update(
+            result[report_metadata["locations"][location]].append(
                 {
                     "phenomenon_name": report_metadata["phenomena"][phenonema]["phenomenon_name"],
                     "code": report_metadata["criteria"][alert["criteria"]]["color"],
+                    "start_time": alert["start_time"],
+                    "end_time": alert["end_time"],
+                    "text": alert["text"],
                 }
             )
 
