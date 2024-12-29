@@ -1,4 +1,6 @@
 services:
+  redis:
+    image: redis:alpine
   knmi_checker:
     build: ./report_checker
     container_name: knmi_checker
@@ -7,6 +9,20 @@ services:
       - notification_token
       - notification_client_id
       - open_data_api_token
+    environment:
+      - REDIS_CHANNEL=knmi_alerts
+    depends_on:
+      - redis
+  telegram_notifier:
+    build: ./notifier
+    container_name: telegram_notifier
+    restart: always
+    environment:
+      - REDIS_CHANNEL=knmi_alerts
+    secrets:
+      - telegram_bot_token
+    depends_on:
+      - redis
 
 secrets:
   notification_token:
@@ -15,3 +31,5 @@ secrets:
     environment: KNMI_NOTIFICATION_CLIENT_ID
   open_data_api_token:
     environment: KNMI_OPEN_DATA_API_TOKEN
+  telegram_bot_token:
+    environment: TELEGRAM_BOT_TOKEN

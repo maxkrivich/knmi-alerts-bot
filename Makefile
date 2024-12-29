@@ -24,4 +24,4 @@ git-hooks: ## Check git hooks
 	pre-commit run --all-files
 
 up: ## Start up the project
-	docker compose up -d
+	docker compose up --build

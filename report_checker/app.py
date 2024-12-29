@@ -2,9 +2,11 @@ import logging
 import ssl
 import requests
 import io
+import os
 import typing
 import json
 import pathlib
+import redis
 
 import paho.mqtt.client as mqtt_client
 import paho.mqtt.properties as properties
@@ -21,9 +23,15 @@ API_TOKEN = get_docker_secret("open_data_api_token")
 TOPIC = "dataplatform/file/v1/waarschuwingen_nederland_48h/1.0/#"
 PROTOCOL = mqtt_client.MQTTv5
 
+
+REDIS_HOST = "redis"
+REDIS_CHANNEL = os.getenv("REDIS_CHANNEL")
+
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
+
+r = redis.Redis(host=REDIS_HOST)
 
 
 def download_report(url: str) -> io.BytesIO:
@@ -112,7 +120,9 @@ def subscribe(client: mqtt_client, topic: str):
 
             report = download_report(download_url)
             # write_report(report, message["data"]["filename"], pathlib.Path.cwd() / "reports")
-            ic(get_alerts(report))
+            alerts = get_alerts(report)
+            ic(alerts)
+            r.publish(REDIS_CHANNEL, json.dumps(alerts))
 
     def on_subscribe(c: mqtt_client, userdata, mid, reason_codes, properties):
         logger.info(f"Subscribed to topic '{topic}'")
