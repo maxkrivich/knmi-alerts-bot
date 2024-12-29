@@ -1,6 +1,7 @@
 import xmltodict
 import datetime
 import collections
+import io
 # import copy
 
 
@@ -14,6 +15,18 @@ def read_file(file_path) -> dict:
         return result["report"]
 
     return None
+
+
+def file_to_bytesio(filepath):
+    with open(filepath, "rb") as file:
+        bytes_io = io.BytesIO(file.read())
+    return bytes_io
+
+
+def read_in_memory_file(file: io.BytesIO) -> dict:
+    result = xmltodict.parse(file.read())
+
+    return result["report"]
 
 
 def parse_report(report: dict) -> dict:
@@ -109,10 +122,7 @@ def squash_alerts(alerts: dict) -> dict:
 
 
 def enrich_alert(report_metadata: dict, alerts: dict):
-    result = {
-        location: list()
-        for location in report_metadata["locations"].values()
-    }
+    result = {location: list() for location in report_metadata["locations"].values()}
 
     for location, phenonemas in alerts.items():
         result[report_metadata["locations"][location]] = []
@@ -132,7 +142,11 @@ def enrich_alert(report_metadata: dict, alerts: dict):
 
 
 def main():
-    report = read_file("./test_file.xml")
+    # report = read_file("./test_file.xml")
+
+    file = file_to_bytesio("./test_file.xml")
+
+    report = read_in_memory_file(file)
 
     result = parse_report(report)
 
