@@ -1,6 +1,9 @@
 import logging
 import ssl
 import os
+import requests
+import io
+import pathlib
 
 import paho.mqtt.client as mqtt_client
 import paho.mqtt.properties as properties
@@ -12,6 +15,7 @@ BROKER_DOMAIN = "mqtt.dataplatform.knmi.nl"
 CLIENT_ID = os.environ.get("KNMI_NOTIFICATION_CLIENT_ID")
 # Obtain your token at: https://developer.dataplatform.knmi.nl/notification-service
 TOKEN = os.environ.get("KNMI_NOTIFICATION_TOKEN")
+API_TOKEN = os.environ.get("KNMI_OPEN_DATA_API_TOKEN")
 # This will listen to both file creation and update events of this dataset:
 # https://dataplatform.knmi.nl/dataset/radar-echotopheight-5min-1-0
 # This topic should have one event every 5 minutes
@@ -22,6 +26,27 @@ PROTOCOL = mqtt_client.MQTTv5
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
+
+
+def download_report(url: str):
+    resp = requests.get(url, stream=True)
+    resp.raise_for_status()
+
+    return io.BytesIO(resp.content)
+
+def write_report(report: io.BytesIO, filename: str, path: pathlib.Path) -> str:
+    full_path = path / filename
+    with open(full_path, "wb") as fd:
+        fd.write(report.read())
+        return filename
+    return None
+
+
+def get_temporary_download_url(url: str) -> str:
+    resp = requests.get(url, headers={"Authorization": API_TOKEN})
+    resp.raise_for_status()
+
+    return resp.json().get("temporaryDownloadUrl")
 
 
 def connect_mqtt() -> mqtt_client:
@@ -55,6 +80,14 @@ def subscribe(client: mqtt_client, topic: str):
         # NOTE: Do NOT do slow processing in this function, as this will interfere with PUBACK messages for QoS=1.
         # A couple of seconds seems fine, a minute is definitely too long.
         logger.info(f"Received message on topic {message.topic}: {str(message.payload)}")
+        message = json.loads(message.payload)
+
+        if message["data"]["filename"].endswith(".xml"):
+            download_url = get_temporary_download_url(message["data"]["url"])
+
+            report = download_report(download_url)
+            write_report(report, message["data"]["filename"], pathlib.Path.cwd() / "reports")
+
 
     def on_subscribe(c: mqtt_client, userdata, mid, reason_codes, properties):
         logger.info(f"Subscribed to topic '{topic}'")
