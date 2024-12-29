@@ -9,8 +9,8 @@ repos:
   - id: requirements-txt-fixer
   # - id: check-added-large-files
   - id: check-merge-conflict
-  - id: detect-aws-credentials
-  - id: detect-private-key
+  # - id: detect-aws-credentials
+  # - id: detect-private-key
   - id: check-json
   # - id: no-commit-to-branch
 - repo: https://github.com/gitleaks/gitleaks
