@@ -24,12 +24,12 @@ services:
       - telegram_bot_token
     depends_on:
       - redis
-    # telegram_bot:
-    #   build: ./knmi_bot
-    #   container_name: telegram_bot
-    #   restart: always
-    #   secrets:
-    #     - telegram_bot_token
+  telegram_bot:
+    build: ./knmi_bot
+    container_name: telegram_bot
+    restart: always
+    secrets:
+      - telegram_bot_token
 
 secrets:
   notification_token:
