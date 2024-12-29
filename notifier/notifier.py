@@ -4,7 +4,7 @@ import redis
 import time
 
 from get_docker_secret import get_docker_secret
-from icecream import ic
+# from icecream import ic
 
 
 REDIS_HOST = "redis"
@@ -32,16 +32,15 @@ def main():
     # get users interested in the alerts (think about muting alerts per user)
     # send alerts to telegram
     pubsub = create_redis_client()
-    # bot = create_bot_client()
+    bot = create_bot_client()
+    send_alert(bot, get_docker_secret("debug_chat_id"), "start notifier")
 
     while True:
         try:
             message = pubsub.get_message()
 
             if message:
-                ic("Got message")
-                ic(message)
-                # send_alert(bot, message["data"]["chat_id"], message["data"]["message"])
+                send_alert(bot, get_docker_secret("debug_chat_id"), message["data"])
             else:
                 time.sleep(1)
         except redis.exceptions.ConnectionError:

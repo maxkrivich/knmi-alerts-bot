@@ -22,6 +22,7 @@ services:
       - REDIS_CHANNEL=knmi_alerts
     secrets:
       - telegram_bot_token
+      - debug_chat_id
     depends_on:
       - redis
   telegram_bot:
@@ -40,3 +41,5 @@ secrets:
     environment: KNMI_OPEN_DATA_API_TOKEN
   telegram_bot_token:
     environment: TELEGRAM_BOT_TOKEN
+  debug_chat_id:
+    environment: MY_CHAT_ID

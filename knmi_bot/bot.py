@@ -1,13 +1,8 @@
 import telebot
 from get_docker_secret import get_docker_secret
-
-API_TOKEN = get_docker_secret("telegram_bot_token")
-
-bot = telebot.TeleBot(API_TOKEN)
+from loguru import logger
 
 
-# Handle '/start' and '/help'
-@bot.message_handler(commands=["help", "start"])
 def send_welcome(message):
     bot.reply_to(
         message,
@@ -18,10 +13,20 @@ I am here to echo your kind words back to you. Just say anything nice and I'll s
     )
 
 
-# Handle all other messages with content_type 'text' (content_types defaults to ['text'])
-@bot.message_handler(func=lambda message: True)
 def echo_message(message):
     bot.reply_to(message, message.text)
 
 
-bot.infinity_polling()
+if __name__ == "__main__":
+    while True:
+        try:
+            logger.info("Starting bot")
+
+            bot = telebot.TeleBot(get_docker_secret("telegram_bot_token"))
+
+            bot.message_handler(commands=["help", "start"])(send_welcome)
+            bot.message_handler(func=lambda message: True)(echo_message)
+            bot.infinity_polling()
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            continue
