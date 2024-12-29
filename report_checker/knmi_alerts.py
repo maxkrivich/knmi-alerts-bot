@@ -2,13 +2,24 @@ import xmltodict
 import datetime
 import collections
 import io
+import pathlib
 # import copy
 
 
-from icecream import ic
+# from icecream import ic
 
 
-def read_file(file_path) -> dict:
+def read_file(file_path: str) -> dict:
+    """Reads a file and returns the content as a dictionary
+
+    Args:
+        file_path (str): Path to the file
+
+    Returns:
+        dict: Returns the content of the file as a dictionary
+    """
+    assert pathlib.Path(file_path).exists(), f"File {file_path} does not exist"
+
     with open(file_path, "r") as fd:
         result = xmltodict.parse(fd.read())
 
@@ -24,12 +35,29 @@ def file_to_bytesio(filepath):
 
 
 def read_in_memory_file(file: io.BytesIO) -> dict:
+    """Reads a file from memory and returns the content as a dictionary
+
+    Args:
+        file (io.BytesIO): File in memory
+
+    Returns:
+        dict: Returns the content of the file as a dictionary
+    """
+
     result = xmltodict.parse(file.read())
 
     return result["report"]
 
 
 def parse_report(report: dict) -> dict:
+    """Parses the report and returns a dictionary with the metadata and forecast
+
+    Args:
+        report (dict): Report as a dictionary
+
+    Returns:
+        dict: Returns a dictionary with the metadata and forecast
+    """
     report_metadata = report["metadata"]["report_structure"]
 
     phenonema = {
@@ -75,6 +103,14 @@ def parse_report(report: dict) -> dict:
 
 
 def detect_alerts(report: dict) -> dict:
+    """Detects alerts in the report for each location
+
+    Args:
+        report (dict): Report as a dictionary
+
+    Returns:
+        dict: Returns a dictionary with the alerts for each location
+    """
     result = {}
 
     locations = report["metadata"]["locations"]
@@ -107,6 +143,14 @@ def detect_alerts(report: dict) -> dict:
 
 
 def squash_alerts(alerts: dict) -> dict:
+    """Squashes the alerts to get the start and end time of the alert. Specifies time range of the alert
+
+    Args:
+        alerts (dict): Alerts for each location
+
+    Returns:
+        dict: Returns a dictionary with the start and end time of the alert
+    """
     result = collections.defaultdict(dict)
     for location, phenonemas in alerts.items():
         for phenonema, alerts in phenonemas.items():
@@ -121,7 +165,16 @@ def squash_alerts(alerts: dict) -> dict:
     return dict(result)
 
 
-def enrich_alert(report_metadata: dict, alerts: dict):
+def enrich_alert(report_metadata: dict, alerts: dict) -> dict:
+    """Enriches the alerts with the metadata of the report
+
+    Args:
+        report_metadata (dict): Report metadata
+        alerts (dict): alerts
+
+    Returns:
+        dict: Returns a dictionary with the enriched alerts
+    """
     result = {location: list() for location in report_metadata["locations"].values()}
 
     for location, phenonemas in alerts.items():
@@ -141,25 +194,36 @@ def enrich_alert(report_metadata: dict, alerts: dict):
     return result
 
 
-def main():
+def get_alerts(report_file: io.BytesIO) -> dict:
+    """Get the alerts from the report
+
+    Args:
+        report_file (io.BytesIO): Report file
+
+    Returns:
+        dict: Returns the alerts from the report
+    """
+
     # report = read_file("./test_file.xml")
+    # file = file_to_bytesio("./test_file.xml")
 
-    file = file_to_bytesio("./test_file.xml")
+    assert report_file, "Report file is empty"
 
-    report = read_in_memory_file(file)
-
-    result = parse_report(report)
-
-    alerts = detect_alerts(result)
-
+    report = read_in_memory_file(report_file)
+    parsed_report = parse_report(report)
+    alerts = detect_alerts(parsed_report)
     alerts = squash_alerts(alerts)
+    final_alerts = enrich_alert(parsed_report["metadata"], alerts)
 
-    final_alerts = enrich_alert(result["metadata"], alerts)
+    return final_alerts
 
-    # final_report = analyse_alerts(result['metadata'], alerts)
 
-    ic(final_alerts)
+def main():
+    pass
 
 
 if __name__ == "__main__":
     main()
+
+
+__all__ = ["get_alerts"]

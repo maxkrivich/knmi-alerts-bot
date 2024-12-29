@@ -1,0 +1,17 @@
+services:
+  knmi_checker:
+    build: ./report_checker
+    container_name: knmi_checker
+    restart: always
+    secrets:
+      - notification_token
+      - notification_client_id
+      - open_data_api_token
+
+secrets:
+  notification_token:
+    environment: KNMI_NOTIFICATION_TOKEN
+  notification_client_id:
+    environment: KNMI_NOTIFICATION_CLIENT_ID
+  open_data_api_token:
+    environment: KNMI_OPEN_DATA_API_TOKEN

@@ -1,26 +1,24 @@
 import logging
 import ssl
-import os
 import requests
 import io
+import typing
+import json
 import pathlib
 
 import paho.mqtt.client as mqtt_client
 import paho.mqtt.properties as properties
+from get_docker_secret import get_docker_secret
+from icecream import ic
+
+
+from knmi_alerts import get_alerts
 
 BROKER_DOMAIN = "mqtt.dataplatform.knmi.nl"
-# Client ID should be made static, it is used to identify your session, so that
-# missed events can be replayed after a disconnect
-# https://www.uuidgenerator.net/version4
-CLIENT_ID = os.environ.get("KNMI_NOTIFICATION_CLIENT_ID")
-# Obtain your token at: https://developer.dataplatform.knmi.nl/notification-service
-TOKEN = os.environ.get("KNMI_NOTIFICATION_TOKEN")
-API_TOKEN = os.environ.get("KNMI_OPEN_DATA_API_TOKEN")
-# This will listen to both file creation and update events of this dataset:
-# https://dataplatform.knmi.nl/dataset/radar-echotopheight-5min-1-0
-# This topic should have one event every 5 minutes
+NOTIFICATION_CLIENT_ID = get_docker_secret("notification_client_id")
+NOTIFICATION_TOKEN = get_docker_secret("notification_token")
+API_TOKEN = get_docker_secret("open_data_api_token")
 TOPIC = "dataplatform/file/v1/waarschuwingen_nederland_48h/1.0/#"
-# Version 3.1.1 also supported
 PROTOCOL = mqtt_client.MQTTv5
 
 logging.basicConfig()
@@ -28,13 +26,32 @@ logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
 
 
-def download_report(url: str):
+def download_report(url: str) -> io.BytesIO:
+    """Download the report
+
+    Args:
+        url (str): URL to the report
+
+    Returns:
+        io.BytesIO: In-memory report
+    """
     resp = requests.get(url, stream=True)
     resp.raise_for_status()
 
     return io.BytesIO(resp.content)
 
-def write_report(report: io.BytesIO, filename: str, path: pathlib.Path) -> str:
+
+def write_report(report: io.BytesIO, filename: str, path: pathlib.Path) -> typing.Optional[str]:
+    """Write the report to a file
+
+    Args:
+        report (io.BytesIO): In-memory report
+        filename (str): Name of the file
+        path (pathlib.Path): Path to write the file
+
+    Returns:
+        typing.Optional[str]: Name of the file
+    """
     full_path = path / filename
     with open(full_path, "wb") as fd:
         fd.write(report.read())
@@ -43,6 +60,14 @@ def write_report(report: io.BytesIO, filename: str, path: pathlib.Path) -> str:
 
 
 def get_temporary_download_url(url: str) -> str:
+    """Get the temporary download URL for the report
+
+    Args:
+        url (str): URL to the report
+
+    Returns:
+        str: Temporary download URL
+    """
     resp = requests.get(url, headers={"Authorization": API_TOKEN})
     resp.raise_for_status()
 
@@ -58,7 +83,7 @@ def connect_mqtt() -> mqtt_client:
         subscribe(c, TOPIC)
 
     client = mqtt_client.Client(
-        mqtt_client.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, protocol=PROTOCOL, transport="websockets"
+        mqtt_client.CallbackAPIVersion.VERSION2, client_id=NOTIFICATION_CLIENT_ID, protocol=PROTOCOL, transport="websockets"
     )
     client.tls_set(tls_version=ssl.PROTOCOL_TLS)
     connect_properties = properties.Properties(properties.PacketTypes.CONNECT)
@@ -67,7 +92,7 @@ def connect_mqtt() -> mqtt_client:
 
     # The MQTT username is not used for authentication, only the token
     username = "token"
-    client.username_pw_set(username, TOKEN)
+    client.username_pw_set(username, NOTIFICATION_TOKEN)
     client.on_connect = on_connect
 
     client.connect(host=BROKER_DOMAIN, port=443, keepalive=60, clean_start=False, properties=connect_properties)
@@ -86,8 +111,8 @@ def subscribe(client: mqtt_client, topic: str):
             download_url = get_temporary_download_url(message["data"]["url"])
 
             report = download_report(download_url)
-            write_report(report, message["data"]["filename"], pathlib.Path.cwd() / "reports")
-
+            # write_report(report, message["data"]["filename"], pathlib.Path.cwd() / "reports")
+            ic(get_alerts(report))
 
     def on_subscribe(c: mqtt_client, userdata, mid, reason_codes, properties):
         logger.info(f"Subscribed to topic '{topic}'")
@@ -105,4 +130,5 @@ def run():
 
 
 if __name__ == "__main__":
+    # ic(get_alerts(None))
     run()
