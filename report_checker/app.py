@@ -122,7 +122,7 @@ def subscribe(client: mqtt_client, topic: str):
             # write_report(report, message["data"]["filename"], pathlib.Path.cwd() / "reports")
             alerts = get_alerts(report)
             ic(alerts)
-            r.publish(REDIS_CHANNEL, json.dumps(alerts))
+            r.publish(REDIS_CHANNEL, json.dumps(alerts, default=str))
 
     def on_subscribe(c: mqtt_client, userdata, mid, reason_codes, properties):
         logger.info(f"Subscribed to topic '{topic}'")
