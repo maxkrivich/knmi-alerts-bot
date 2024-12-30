@@ -108,6 +108,17 @@ def connect_mqtt() -> mqtt_client:
     return client
 
 
+def process_message(message: dict):
+    if not message["data"]["filename"].endswith(".xml"):
+        return
+
+    download_url = get_temporary_download_url(message["data"]["url"])
+    report = download_report(download_url)
+    alerts = get_alerts(report)
+    ic(alerts)
+    r.publish(REDIS_CHANNEL, json.dumps(alerts, default=str))
+
+
 def subscribe(client: mqtt_client, topic: str):
     def on_message(c: mqtt_client, userdata, message):
         # NOTE: Do NOT do slow processing in this function, as this will interfere with PUBACK messages for QoS=1.
@@ -115,14 +126,7 @@ def subscribe(client: mqtt_client, topic: str):
         logger.info(f"Received message on topic {message.topic}: {str(message.payload)}")
         message = json.loads(message.payload)
 
-        if message["data"]["filename"].endswith(".xml"):
-            download_url = get_temporary_download_url(message["data"]["url"])
-
-            report = download_report(download_url)
-            # write_report(report, message["data"]["filename"], pathlib.Path.cwd() / "reports")
-            alerts = get_alerts(report)
-            ic(alerts)
-            r.publish(REDIS_CHANNEL, json.dumps(alerts, default=str))
+        process_message(message)
 
     def on_subscribe(c: mqtt_client, userdata, mid, reason_codes, properties):
         logger.info(f"Subscribed to topic '{topic}'")
@@ -141,4 +145,13 @@ def run():
 
 if __name__ == "__main__":
     # ic(get_alerts(None))
+
+    message = {
+        "data": {
+            "filename": "knmi_waarschuwingen_202412301245.xml",
+            "url": "https://api.dataplatform.knmi.nl/open-data/v1/datasets/waarschuwingen_nederland_48h/versions/1.0/files/knmi_waarschuwingen_202412301245.xml/url",
+        }
+    }
+    # process_message(message)
+
     run()
