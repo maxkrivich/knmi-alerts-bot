@@ -12,6 +12,7 @@ lint: ## Run linting
 	ruff check
 
 format: ## Run formatting
+	ruff check --fix
 	ruff format
 
 check-format: ## Check formatting

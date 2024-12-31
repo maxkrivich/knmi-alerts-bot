@@ -1,19 +1,17 @@
-import logging
-import ssl
-import requests
 import io
-import os
-import typing
 import json
+import logging
+import os
 import pathlib
-import redis
+import ssl
+import typing
 
 import paho.mqtt.client as mqtt_client
 import paho.mqtt.properties as properties
+import redis
+import requests
 from get_docker_secret import get_docker_secret
 from icecream import ic
-
-
 from knmi_alerts import get_alerts
 
 BROKER_DOMAIN = "mqtt.dataplatform.knmi.nl"

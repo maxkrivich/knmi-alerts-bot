@@ -1,8 +1,10 @@
-import xmltodict
-import datetime
 import collections
+import datetime
 import io
 import pathlib
+
+import xmltodict
+
 # import copy
 
 

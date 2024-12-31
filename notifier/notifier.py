@@ -1,10 +1,11 @@
-import telebot
-import os
-import redis
 import json
+import os
 import time
 
+import redis
+import telebot
 from get_docker_secret import get_docker_secret
+
 # from icecream import ic
 
 
