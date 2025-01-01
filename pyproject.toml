@@ -19,7 +19,7 @@ get-docker-secret = "^2.0.0"
 [tool.poetry.group.dev.dependencies]
 icecream = "^2.1.3"
 ipython = "^8.31.0"
-mypy = "^1.14.0"
+mypy = "^1.14.1"
 
 [build-system]
 requires = ["poetry-core"]
