@@ -31,6 +31,30 @@ services:
     restart: always
     secrets:
       - telegram_bot_token
+  postgres_api:
+    image: postgrest/postgrest:v12.2.3
+    container_name: db_api
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: postgres://app_user:password@db:5432/app_db?user=app_user&password=password
+      PGRST_OPENAPI_SERVER_PROXY_URI: http://127.0.0.1:3000
+      PGRST_DB_ANON_ROLE: app_user
+      PGRST_DB_SCHEMA: public
+    depends_on:
+      - db
+  db:
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./schema/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: password
+
 
 secrets:
   notification_token:
@@ -43,3 +67,7 @@ secrets:
     environment: TELEGRAM_BOT_TOKEN
   debug_chat_id:
     environment: MY_CHAT_ID
+
+volumes:
+  db:
+    driver: local
