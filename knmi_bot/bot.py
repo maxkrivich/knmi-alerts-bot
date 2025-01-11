@@ -105,7 +105,7 @@ def all_messages(message: telebot.types.Message):
         bot.set_message_reaction(message.chat.id, message.id, [telebot.types.ReactionTypeEmoji("\U0001f44d")], is_big=False)
         update_user_mute_code(message.from_user.id, message.text)
     else:
-        bot.reply_to(message, message.text)
+        bot.reply_to(message, "I don't understand this command \U0001f62d. Please use /help to see the list of commands.")
 
 
 if __name__ == "__main__":
