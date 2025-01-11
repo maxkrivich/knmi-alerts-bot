@@ -28,69 +28,83 @@ LIST_OF_CODES = [
 ]
 
 
-def send_welcome(message):
+def send_welcome(message: telebot.types.Message):
+    """Send welcome message
+
+    Args:
+        message (telebot.types.Message): Telegram message
+    """
     create_or_update_user({"telegram_id": message.from_user.id, "username": message.from_user.username or "undefined"})
 
-    bot.reply_to(
-        message,
-        """\
-Hi there, I am EchoBot.
-I am here to echo your kind words back to you. Just say anything nice and I'll say the exact same thing to you!\
-""",
-    )
+    welcome_message = f"""
+Welcome {message.from_user.username}! Please use the following commands:
+- /region: Set your region
+- /mute: Mute an alert code
+
+This will help me to send alerts based on your preferences.
+"""
+
+    bot.send_message(message.chat.id, welcome_message)
 
 
-def set_region(message):
+def send_help(message: telebot.types.Message):
+    """Send help message
+
+    Args:
+        message (telebot.types.Message): Telegram message
+    """
+
+    help_message = """
+Please use the following commands:
+- /region: Set your region
+- /mute: Mute an alert code
+"""
+
+    bot.send_message(message.chat.id, help_message)
+
+
+def set_region(message: telebot.types.Message):
     """Set the region for the user
 
     Args:
-        message (_type_): _description_
+        message (telebot.types.Message): Telegram message
     """
     keyboard = telebot.types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 
     keyboard.add(*[telebot.types.KeyboardButton(province) for province in LIST_OF_PROVINCES[: len(LIST_OF_PROVINCES) // 2]])
     keyboard.add(*[telebot.types.KeyboardButton(province) for province in LIST_OF_PROVINCES[len(LIST_OF_PROVINCES) // 2 :]])
 
-    # send_message_or_soft_delete_user(bot, message.from_user.id, "Please enter your region", reply_markup=keyboard)
-
-    bot.send_message(message.chat.id, "Please enter your region", reply_markup=keyboard)
+    bot.send_message(message.chat.id, "Please select your region", reply_markup=keyboard)
 
 
-def mute_code(message):
+def mute_code(message: telebot.types.Message):
     """Mute the alert code
 
     Args:
-        message (_type_): _description_
+        message (telebot.types.Message): Telegram message
     """
     keyboard = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 
     keyboard.add(*[telebot.types.KeyboardButton(code) for code in LIST_OF_CODES])
 
-    # send_message_or_soft_delete_user(
-    #     bot, message.from_user.id, "Please enter the alert code you want to mute", reply_markup=keyboard
-    # )
-
-    bot.send_message(message.chat.id, "Please enter the alert code you want to mute", reply_markup=keyboard)
+    bot.send_message(message.chat.id, "Please select the code you want to mute", reply_markup=keyboard)
 
 
-def all_messages(message):
+def all_messages(message: telebot.types.Message):
     """Echo all messages
 
     Args:
-        message (_type_): _description_
+        message (telebot.types.Message): Telegram message
     """
     create_or_update_user({"telegram_id": message.from_user.id, "username": message.from_user.username or "undefined"})
 
     if message.text in LIST_OF_PROVINCES:
-        bot.reply_to(message, f"Region set to {message.text}")
-        # reply_to_message_or_soft_delete(message, f"Region set to {message.text}")
+        bot.set_message_reaction(message.chat.id, message.id, [telebot.types.ReactionTypeEmoji("\U0001f44d")], is_big=False)
         update_user_region(message.from_user.id, message.text)
     elif message.text in LIST_OF_CODES:
-        bot.reply_to(message, f"Alert code muted: {message.text}")
-        # reply_to_message_or_soft_delete(message, f"Alert code muted: {message.text}")
+        bot.set_message_reaction(message.chat.id, message.id, [telebot.types.ReactionTypeEmoji("\U0001f44d")], is_big=False)
         update_user_mute_code(message.from_user.id, message.text)
     else:
-        # reply_to_message_or_soft_delete(message, message.text)
         bot.reply_to(message, message.text)
 
 
@@ -101,10 +115,12 @@ if __name__ == "__main__":
 
             bot = telebot.TeleBot(get_docker_secret("telegram_bot_token"))
 
-            bot.message_handler(commands=["help", "start"])(send_welcome)
-            bot.message_handler(commands=["region"])(set_region)
-            bot.message_handler(commands=["mute"])(mute_code)
-            bot.message_handler(func=lambda message: True)(all_messages)
+            bot.register_message_handler(send_welcome, commands=["start"])
+            bot.register_message_handler(send_help, commands=["help"])
+            bot.register_message_handler(set_region, commands=["region"])
+            bot.register_message_handler(mute_code, commands=["mute"])
+            bot.register_message_handler(all_messages, func=lambda message: True)
+
             bot.infinity_polling()
         except Exception as e:
             logger.error(f"Error: {e}")
