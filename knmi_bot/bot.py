@@ -89,7 +89,7 @@ def send_reaction_or_soft_delete(bot: telebot.TeleBot, chat_id: str, message_id:
         return False
 
 
-def send_welcome(message: telebot.types.Message):
+def send_welcome_command(message: telebot.types.Message):
     """Send welcome message
 
     Args:
@@ -110,7 +110,7 @@ This will help me to send alerts based on your preferences.
     send_message_or_soft_delete(bot, message.chat.id, welcome_message)
 
 
-def send_help(message: telebot.types.Message):
+def send_help_command(message: telebot.types.Message):
     """Send help message
 
     Args:
@@ -126,7 +126,7 @@ Please use the following commands:
     send_message_or_soft_delete(bot, message.chat.id, help_message)
 
 
-def set_region(message: telebot.types.Message):
+def set_region_command(message: telebot.types.Message):
     """Set the region for the user
 
     Args:
@@ -140,7 +140,7 @@ def set_region(message: telebot.types.Message):
     send_message_or_soft_delete(bot, message.chat.id, "Please select your region", reply_markup=keyboard)
 
 
-def mute_code(message: telebot.types.Message):
+def set_mute_code_command(message: telebot.types.Message):
     """Mute the alert code
 
     Args:
@@ -153,7 +153,7 @@ def mute_code(message: telebot.types.Message):
     send_message_or_soft_delete(bot, message.chat.id, "Please select the code you want to mute", reply_markup=keyboard)
 
 
-def all_messages(message: telebot.types.Message):
+def catch_all_messages(message: telebot.types.Message):
     """Echo all messages
 
     Args:
@@ -185,11 +185,11 @@ if __name__ == "__main__":
 
             bot = telebot.TeleBot(get_docker_secret("telegram_bot_token"))
 
-            bot.register_message_handler(send_welcome, commands=["start"])
-            bot.register_message_handler(send_help, commands=["help"])
-            bot.register_message_handler(set_region, commands=["region"])
-            bot.register_message_handler(mute_code, commands=["mute"])
-            bot.register_message_handler(all_messages, func=lambda message: True)
+            bot.register_message_handler(send_welcome_command, commands=["start"])
+            bot.register_message_handler(send_help_command, commands=["help"])
+            bot.register_message_handler(set_region_command, commands=["region"])
+            bot.register_message_handler(set_mute_code_command, commands=["mute"])
+            bot.register_message_handler(catch_all_messages, func=lambda message: True)
 
             bot.infinity_polling()
         except Exception as e:
