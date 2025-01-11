@@ -50,10 +50,10 @@ def make_alert_message(location: str, alert: dict) -> str:
 *Code*: {alert['code']}
 *Start time*: {alert['start_time']}
 *End time*: {alert['end_time']}
-*Description*: {alert['text']['NL']}
+*Description*: {alert['text']['EN']}
 
 
-More info -- https://www.knmi.nl/nederland-nu/weer/waarschuwingen/{location}
+More info -- https://www.knmi.nl/nederland-nu/weer/waarschuwingen/{location.lower()}
     """.strip()
 
     return message
@@ -131,7 +131,7 @@ def get_users_interested_in_alert(location: str, alert: dict) -> typing.List[str
 
     r = requests.get(
         "http://db_api:3000/users",
-        params={"region": f"eq.{location}", "is_deleted": "eq.false"},
+        params={"region": f"eq.{location}", "is_deleted": "eq.false", f"notify_{alert['code'].lower()}": "eq.true"},
         headers={"Content-Type": "application/json"},
         timeout=10,
     )
@@ -171,6 +171,7 @@ def process_message(bot: telebot.TeleBot, record: dict) -> None:
 
 
 def main():
+    """Main function"""
     logger.info("Starting notifier")
 
     redis_client = create_redis_client()

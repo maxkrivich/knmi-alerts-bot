@@ -41,7 +41,7 @@ def download_report(url: str) -> io.BytesIO:
     Returns:
         io.BytesIO: In-memory report
     """
-    resp = requests.get(url, stream=True)
+    resp = requests.get(url, stream=True, timeout=20)
     resp.raise_for_status()
 
     return io.BytesIO(resp.content)
@@ -74,7 +74,7 @@ def get_temporary_download_url(url: str) -> str:
     Returns:
         str: Temporary download URL
     """
-    resp = requests.get(url, headers={"Authorization": API_TOKEN})
+    resp = requests.get(url, headers={"Authorization": API_TOKEN}, timeout=10)
     resp.raise_for_status()
 
     return resp.json().get("temporaryDownloadUrl")
@@ -144,12 +144,19 @@ def run():
 if __name__ == "__main__":
     # ic(get_alerts(None))
 
-    message = {
+    message1 = {
         "data": {
             "filename": "knmi_waarschuwingen_202412301245.xml",
             "url": "https://api.dataplatform.knmi.nl/open-data/v1/datasets/waarschuwingen_nederland_48h/versions/1.0/files/knmi_waarschuwingen_202412301245.xml/url",
         }
     }
-    # process_message(message)
+
+    message2 = {
+        "data": {
+            "filename": "knmi_waarschuwingen_202501110807.xml",
+            "url": "https://api.dataplatform.knmi.nl/open-data/v1/datasets/waarschuwingen_nederland_48h/versions/1.0/files/knmi_waarschuwingen_202501110807.xml/url",
+        }
+    }
+    # process_message(message2)
 
     run()
