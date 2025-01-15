@@ -20,6 +20,7 @@ services:
     restart: always
     environment:
       - REDIS_CHANNEL=knmi_alerts
+      - API_URL=http://db_api:3000
     secrets:
       - telegram_bot_token
       - debug_chat_id
@@ -31,6 +32,8 @@ services:
     restart: always
     secrets:
       - telegram_bot_token
+    environment:
+      - API_URL=http://db_api:3000
   postgres_api:
     image: postgrest/postgrest:v12.2.3
     container_name: db_api
