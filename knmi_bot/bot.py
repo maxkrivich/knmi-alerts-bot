@@ -103,6 +103,7 @@ def send_welcome_command(message: telebot.types.Message):
 Welcome {message.from_user.username}! Please use the following commands:
 - /region: Set your region
 - /mute: Mute an alert code
+- /reset: Reset all settings for notifications
 
 This will help me to send alerts based on your preferences.
 """
@@ -121,6 +122,7 @@ def send_help_command(message: telebot.types.Message):
 Please use the following commands:
 - /region: Set your region
 - /mute: Mute an alert code
+- /reset: Reset all settings for notifications
 """
 
     send_message_or_soft_delete(bot, message.chat.id, help_message)
@@ -153,6 +155,19 @@ def set_mute_code_command(message: telebot.types.Message):
     send_message_or_soft_delete(bot, message.chat.id, "Please select the code you want to mute", reply_markup=keyboard)
 
 
+def reset_mute_code_command(message: telebot.types.Message):
+    """Reset the mute code
+
+    Args:
+        message (telebot.types.Message): Telegram message
+    """
+
+    for code in LIST_OF_CODES:
+        update_user_mute_code(message.from_user.id, code, True)
+
+    send_reply_or_soft_delete(bot, message, "Mute code reset successfully \U0001f44d")
+
+
 def catch_all_messages(message: telebot.types.Message):
     """Echo all messages
 
@@ -165,7 +180,6 @@ def catch_all_messages(message: telebot.types.Message):
         send_reaction_or_soft_delete(
             bot, message.chat.id, message.id, [telebot.types.ReactionTypeEmoji("\U0001f44d")], is_big=False
         )
-
         update_user_region(message.from_user.id, message.text)
     elif message.text in LIST_OF_CODES:
         send_reaction_or_soft_delete(
@@ -185,11 +199,17 @@ if __name__ == "__main__":
 
             bot = telebot.TeleBot(get_docker_secret("telegram_bot_token"))
 
-            bot.register_message_handler(send_welcome_command, commands=["start"])
-            bot.register_message_handler(send_help_command, commands=["help"])
-            bot.register_message_handler(set_region_command, commands=["region"])
-            bot.register_message_handler(set_mute_code_command, commands=["mute"])
-            bot.register_message_handler(catch_all_messages, func=lambda message: True)
+            handlers = [
+                {"commands": ["start"], "callback": send_welcome_command},
+                {"commands": ["help"], "callback": send_help_command},
+                {"commands": ["region"], "callback": set_region_command},
+                {"commands": ["mute"], "callback": set_mute_code_command},
+                {"commands": ["reset"], "callback": reset_mute_code_command},
+                {"func": lambda message: True, "callback": catch_all_messages},
+            ]
+
+            for handler in handlers:
+                bot.register_message_handler(**handler)
 
             bot.infinity_polling()
         except Exception as e:
