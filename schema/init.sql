@@ -11,25 +11,40 @@ CREATE TYPE public.province AS ENUM (
 
 -- Create simplified weather alerts table
 CREATE TABLE IF NOT EXISTS public.alerts (
-    id SERIAL PRIMARY KEY,
-    severity alert_severity NOT NULL,
+    issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
     region province NOT NULL,
-    phenomenon_name TEXT NOT NULL,
-    start_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    description TEXT
+    alerts JSONB NOT NULL,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+
+
+
+
+    -- region province NOT NULL,
+    -- start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    -- end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    -- phenomenon_name TEXT NOT NULL,
+    -- severity alert_severity NOT NULL,
+    -- description JSONB NOT NULL,
+
+    PRIMARY KEY (issue_date, region)
 );
 
 
 -- Create table for users
 CREATE TABLE IF NOT EXISTS public.users (
     telegram_id TEXT PRIMARY KEY,
-    username TEXT NOT NULL,
+    username VARCHAR(64) NOT NULL,
     region province,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
 
     notify_yellow BOOLEAN NOT NULL DEFAULT TRUE,
     notify_orange BOOLEAN NOT NULL DEFAULT TRUE,
-    notify_red BOOLEAN NOT NULL DEFAULT TRUE
-    -- maybe add notification settings and mute
+    notify_red BOOLEAN NOT NULL DEFAULT TRUE,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+
 );

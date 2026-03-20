@@ -1,4 +1,4 @@
-import telebot
+import telebot  # ty: ignore[unresolved-import]
 from get_docker_secret import get_docker_secret
 from loguru import logger
 from users import create_or_update_user, soft_delete_user, update_user_mute_code, update_user_region

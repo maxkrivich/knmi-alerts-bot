@@ -5,8 +5,8 @@ help: ## This help
 
 install: ## Start up the project
 	brew install hadolint
-	pip install pre-commit poetry ruff
-	poetry install
+	pip install pre-commit uv ruff
+	uv install
 	pre-commit install
 
 lint: ## Run linting
@@ -19,8 +19,8 @@ format: ## Run formatting
 check-format: ## Check formatting
 	ruff format --check
 
-check-mypy: ## Check mypy
-	poetry run mypy .
+check-ty: ## Check ty
+	uv run ty check
 
 git-hooks: ## Check git hooks
 	pre-commit run --all-files

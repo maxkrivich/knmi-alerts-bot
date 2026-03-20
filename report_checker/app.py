@@ -8,10 +8,9 @@ import typing
 
 import paho.mqtt.client as mqtt_client
 import paho.mqtt.properties as properties
-import redis
+import redis  # ty: ignore[unresolved-import]
 import requests
 from get_docker_secret import get_docker_secret
-from icecream import ic
 from knmi_alerts import get_alerts
 
 BROKER_DOMAIN = "mqtt.dataplatform.knmi.nl"
@@ -80,8 +79,8 @@ def get_temporary_download_url(url: str) -> str:
     return resp.json().get("temporaryDownloadUrl")
 
 
-def connect_mqtt() -> mqtt_client:
-    def on_connect(c: mqtt_client, userdata, flags, reason_code, props=None):
+def connect_mqtt() -> mqtt_client.Client:
+    def on_connect(c: mqtt_client.Client, userdata, flags, reason_code, props=None):
         logger.info(f"Connected using client ID: {str(c._client_id)}")
         logger.info(f"Session present: {str(flags.session_present)}")
         logger.info(f"Connection result: {str(reason_code)}")
@@ -108,17 +107,22 @@ def connect_mqtt() -> mqtt_client:
 
 def process_message(message: dict):
     if not message["data"]["filename"].endswith(".xml"):
+        download_url = get_temporary_download_url(message["data"]["url"])
+        txt_file = download_report(download_url)
+        wrapper = io.TextIOWrapper(txt_file, encoding="utf-8")
+
+        logger.info(f"Received message: {wrapper.read()}")
         return
 
     download_url = get_temporary_download_url(message["data"]["url"])
     report = download_report(download_url)
     alerts = get_alerts(report)
-    ic(alerts)
+    # ic(alerts)
     r.publish(REDIS_CHANNEL, json.dumps(alerts, default=str))
 
 
-def subscribe(client: mqtt_client, topic: str):
-    def on_message(c: mqtt_client, userdata, message):
+def subscribe(client: mqtt_client.Client, topic: str):
+    def on_message(c: mqtt_client.Client, userdata, message):
         # NOTE: Do NOT do slow processing in this function, as this will interfere with PUBACK messages for QoS=1.
         # A couple of seconds seems fine, a minute is definitely too long.
         logger.info(f"Received message on topic {message.topic}: {str(message.payload)}")
@@ -126,7 +130,7 @@ def subscribe(client: mqtt_client, topic: str):
 
         process_message(message)
 
-    def on_subscribe(c: mqtt_client, userdata, mid, reason_codes, properties):
+    def on_subscribe(c: mqtt_client.Client, userdata, mid, reason_codes, properties):
         logger.info(f"Subscribed to topic '{topic}'")
 
     client.on_subscribe = on_subscribe
@@ -157,6 +161,14 @@ if __name__ == "__main__":
             "url": "https://api.dataplatform.knmi.nl/open-data/v1/datasets/waarschuwingen_nederland_48h/versions/1.0/files/knmi_waarschuwingen_202501110807.xml/url",
         }
     }
+
+    txt_message = {
+        "data": {
+            "filename": "knmi_waarschuwingen_202501170842.txt",
+            "url": "https://api.dataplatform.knmi.nl/open-data/v1/datasets/waarschuwingen_nederland_48h/versions/1.0/files/knmi_waarschuwingen_202501170842.txt/url",
+        }
+    }
+
     # process_message(message2)
 
     run()

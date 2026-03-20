@@ -27,8 +27,6 @@ def read_file(file_path: str) -> dict:
 
         return result["report"]
 
-    return None
-
 
 def file_to_bytesio(filepath):
     with open(filepath, "rb") as file:

@@ -4,9 +4,9 @@ todo project description
 ## Project Setup
 
 ### Prerequisites
-- python 3.12
+- python 3.14
 - pre-commit
-- poetry
+- uv
 - Docker
 
 ### Installation
