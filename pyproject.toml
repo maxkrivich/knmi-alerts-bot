@@ -23,15 +23,16 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "icecream>=2.1.3,<3",
-    "ipython>=8.31.0,<9",
-    "ruff>=0.15.7",
+    "icecream",
+    "ipython",
+    "ruff",
     "ty",
 ]
 
 [tool.uv]
 package = false
 default-groups = "all"
+exclude-newer = "30 days"
 
 # [build-system]
 # requires = ["uv_build>=0.10.11,<0.11.0"]

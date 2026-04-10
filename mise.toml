@@ -5,20 +5,21 @@ python = "latest"
 uv = "latest"
 
 [env]
-_.file = { path = ".env" , redact = true, required =  true}
+_.file = { path = ".env" , redact = true, required =  false}
+UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
 
-[tasks.install]
+[tasks.setup]
 description = "Create/update project venv from pyproject + lock"
-run = "uv sync --all-groups"
+run = "uv sync --frozen"
 
 [tasks.check-ty]
 description = "Type check in project env"
-depends = ["install"]
+depends = ["setup"]
 run = "uv run ty check"
 
 [tasks.lint]
 description = "Lint in project env"
-depends = ["install"]
+depends = ["setup"]
 run = "uv run ruff check"
 
 
@@ -33,6 +34,11 @@ run = [
 description = "Check formatting"
 run = "uv run ruff format --check"
 
+[tasks.audit]
+description = "Audit dependencies for known vulnerabilities"
+depends = ["setup"]
+run = "uv audit --preview-features audit"
+
 [tasks.git-hooks]
 description = "Run pre-commit hooks on all files"
 run = "pre-commit run --all-files"
@@ -44,7 +50,9 @@ run = "docker compose up --build"
 [tasks.clean]
 description = "Clean generated files"
 run = [
-	"if [ -d docs ]; then find docs -mindepth 1 -delete; fi",
 	"find . -type d -name '__pycache__' -exec rm -r {} +",
 	"find . -type d -name '*.egg-info' -exec rm -r {} +",
 ]
+
+[settings]
+python.uv_venv_auto = "create|source"
