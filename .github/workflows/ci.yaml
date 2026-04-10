@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  # push:
-  #   branches:
-  #     - main
 
 jobs:
   build:
@@ -14,15 +11,14 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: jdx/mise-action@v4
       with:
-        python-version: '3.12'
+        install: true
 
     - name: Install dependencies
-      run: make install
+      run: mise setup
 
     - name: Run checks
-      run: make git-hooks
+      run: mise run git-hooks
