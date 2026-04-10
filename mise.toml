@@ -34,6 +34,11 @@ run = [
 description = "Check formatting"
 run = "uv run ruff format --check"
 
+[tasks.full-ci-check]
+description = "Run format, lint, and type checks"
+depends = ["check-format", "lint", "check-ty", "audit", "git-hooks"]
+run = "true"
+
 [tasks.audit]
 description = "Audit dependencies for known vulnerabilities"
 depends = ["setup"]

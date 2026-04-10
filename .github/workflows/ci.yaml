@@ -21,4 +21,4 @@ jobs:
       run: mise setup
 
     - name: Run checks
-      run: mise run git-hooks
+      run: mise run full-ci-check
