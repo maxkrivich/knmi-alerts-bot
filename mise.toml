@@ -1,6 +1,6 @@
 [tools]
 hadolint = "latest"
-pre-commit = "latest"
+prek = "latest"
 python = "latest"
 uv = "latest"
 
@@ -10,7 +10,10 @@ UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
 
 [tasks.setup]
 description = "Create/update project venv from pyproject + lock"
-run = "uv sync --frozen"
+run = [
+	"uv sync --frozen",
+	"prek install -f",
+]
 
 [tasks.check-ty]
 description = "Type check in project env"
@@ -45,8 +48,8 @@ depends = ["setup"]
 run = "uv audit --preview-features audit"
 
 [tasks.git-hooks]
-description = "Run pre-commit hooks on all files"
-run = "pre-commit run --all-files"
+description = "Run prek hooks on all files"
+run = "prek run --all-files"
 
 [tasks.up]
 description = "Start services with Docker Compose"

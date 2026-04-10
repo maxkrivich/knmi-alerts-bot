@@ -1,0 +1,38 @@
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v5.0.0"
+hooks = [
+  { id = "check-yaml" },
+  { id = "check-ast" },
+  { id = "debug-statements" },
+  { id = "end-of-file-fixer" },
+  { id = "check-docstring-first" },
+  { id = "trailing-whitespace" },
+  { id = "requirements-txt-fixer" },
+  { id = "check-xml" },
+  { id = "check-toml" },
+  { id = "check-merge-conflict" },
+  { id = "check-json" },
+]
+
+[[repos]]
+repo = "https://github.com/gitleaks/gitleaks"
+rev = "v8.22.1"
+hooks = [
+  { id = "gitleaks" },
+]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.8.5"
+hooks = [
+  { id = "ruff", args = ["--fix"] },
+  { id = "ruff-format" },
+]
+
+[[repos]]
+repo = "https://github.com/hadolint/hadolint"
+rev = "v2.13.1-beta"
+hooks = [
+  { id = "hadolint" },
+]

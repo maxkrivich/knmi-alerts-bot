@@ -18,6 +18,7 @@ todo project description
 3. Install dependencies:
     ```sh
     mise install
+    mise run setup
     ```
 4. Check the rest of supported commands
     ```sh
