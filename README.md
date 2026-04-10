@@ -4,10 +4,7 @@ todo project description
 ## Project Setup
 
 ### Prerequisites
-- python 3.14
-- pre-commit
-- uv
-- Docker
+- mise
 
 ### Installation
 1. Clone the repository:
@@ -20,17 +17,17 @@ todo project description
     ```
 3. Install dependencies:
     ```sh
-    make install
+    mise install
     ```
 4. Check the rest of supported commands
     ```sh
-    make help
+    mise tasks
     ```
 
 ### Running the Project
 1. Start the project:
     ```sh
-    make up
+    mise run up
     ```
 
 ## Contributing
